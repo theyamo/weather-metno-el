@@ -156,6 +156,11 @@ Only png format icons are currently used."
 (defvar weather-metno-symbol--storage nil
   "Symbol cache.")
 
+(defconst weather-metno--display-functions '(#'weather-metno-forecast #'weather-metno-condensed-view))
+
+(defvar weather-metno--display-function #'weather-metno-forecast
+  "Function to display the forecast.")
+
 (defun weather-metno-clear-symbol-cache ()
   (interactive)
   (setq weather-metno-symbol--storage nil))
@@ -385,6 +390,7 @@ documentation of the web API."
                         (url-store-in-cache (current-buffer))
 
                         (let ((xml (xml-parse-region (point) (point-max))))
+                          (setq my-xml xml)
                           (kill-buffer)
 
                           (funcall callback lat lon msl raw-xml
@@ -652,7 +658,7 @@ LAST-HEADLINE should point to the place where icons can be inserted."
      (setq weather-metno--data data)
      ;; If a forecast buffer exists then update it but do not switch.
      (when (get-buffer weather-metno-buffer-name)
-       (weather-metno-forecast t)))
+       (funcall weather-metno--display-function t)))
    (or lat weather-metno-location-latitude)
    (or lon weather-metno-location-longitude)
    (or msl weather-metno-location-msl)))
@@ -759,7 +765,7 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
 (defun weather-metno--fetch-location-data (location)
   (let ((url-request-extra-headers
          `(("accept-language" . "english"))))
-    (let ((query-result (url-retrieve-synchronously (format "https://nominatim.openstreetmap.org/search?q=%s&format=json" location))))
+    (let ((query-result (url-retrieve-synchronously (format "https://nominatim.openstreetmap.org/search?q=%s&format=json&accept-language=en" location))))
       (with-current-buffer query-result
         (progn
           (goto-char (point-min))
@@ -801,7 +807,7 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
 
   (unless (equal (list lat lon msl) weather-metno--data)
     (weather-metno-update lat lon msl)
-    (weather-metno-forecast)))
+    (funcall weather-metno--display-function nil)))
 
 (defun weather-metno-forecast-search-location (location)
   (interactive
@@ -813,19 +819,23 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
     (when (eq (length data) 0)
       (error "No matches."))
     (when (not (eq (length data) 1))
-      (message "Multiple matches. Using the most relevant one."))      
+      (message "Multiple matches. Using the most relevant one."))
     (let* ((loc (weather-metno--order-locations-by-importance data))
            (address-type (string-to-number (gethash "addresstype" loc)))
            (type (string-to-number (gethash "type" loc)))
-           (name (gethash "name" loc))
+           (name (gethash "display_name" loc))
            (lon (string-to-number (gethash "lon" loc)))
            (lat (string-to-number (gethash "lat" loc))))
       (setq weather-metno-location-name name)
       ;; (setq weather-metno-location-latitude lat)
       ;; (setq weather-metno-location-longitude lon)
-      (weather-metno-update lat lon nil)
-      (weather-metno-forecast))))
+      (unless (string= name weather-metno-location-name)
+        (setq weather-metno-location-name name)
+        (weather-metno-update lat lon nil)
+        (funcall weather-metno--display-function nil)))))
 
+(defun weather-metno-show ()
+  (interactive))
 (provide 'weather-metno)
 
 ;;; weather-metno.el ends here
