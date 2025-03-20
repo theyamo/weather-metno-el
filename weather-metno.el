@@ -171,7 +171,7 @@ Only png format icons are currently used."
 
 (defun weather-metno--weathericon-url (icon &optional nightp polarp content-type)
   "Create URL to get ICON from the weathericon API."
-  (format "file:%s/png/%s.png" weather-metno-weathericon-directory icon))
+  (format "file:%s/%s.png" weather-metno-weathericon-directory icon))
 
 (defcustom weather-metno-get-image-props nil
   "Image props for weather symbols.
@@ -677,6 +677,8 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
   (unless weather-metno--data
     (weather-metno-update))
 
+  (weather-metno--check-weathericons)
+  
   (with-current-buffer (get-buffer-create weather-metno-buffer-name)
     (save-excursion
       (let ((inhibit-read-only t))
@@ -771,6 +773,18 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
               (error "Unable to fetch data")))
           (message (buffer-substring (point-min) (point)))
           (json-parse-string (buffer-substring (point) (point-max))))))))
+
+(defun weather-metno--check-weathericons ()
+  "Check if `weather-metno-weathericon-directory` is nil, if so, ask to download and extract the icon package."
+  (interactive)
+  (when (and (null weather-metno-weathericon-directory)
+             (y-or-n-p "The weathericons directory is not set. Download and extract the package? "))
+    (let ((dir (read-directory-name "Select directory to clone weathericons into: "))
+          (zip-file (concat temporary-file-directory "/weathericons.zip")))
+      (url-copy-file "https://github.com/metno/weathericons/archive/refs/heads/main.zip" zip-file t)
+      (shell-command (format "unzip -qq -o -j %s \"weathericons-main/weather/png/*\" -d %s" zip-file dir))
+      (setq weather-metno-weathericon-directory dir)
+      (customize-save-variable 'weather-metno-weathericon-directory dir))))
 
 ;;;###autoload
 (defun weather-metno-forecast-location (lat lon &optional msl)
