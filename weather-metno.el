@@ -48,6 +48,12 @@
         calendar-location-name
       "")))
 
+(defcustom weather-metno-search-server
+  "https://nominatim.openstreetmap.org"
+  "Server used to search for location names.
+The server must offer the nominatim.org API."
+  :type 'string)
+
 (defcustom weather-metno-location-name
   (weather-metno--get-default-location-name)
   "Name of the default weather location.
@@ -154,7 +160,7 @@ Only png format icons are currently used."
 (defun weather-metno--symbol-cache-insert (symbol icon &optional nightp polarp content-type)
   "Store SYMBOL ICON in cache."
   (setq weather-metno-symbol--storage (append weather-metno-symbol--storage
-                                             (list (cons (list icon nightp polarp content-type) symbol)))))
+                                              (list (cons (list icon nightp polarp content-type) symbol)))))
 
 (defun weather-metno--symbol-cache-fetch (icon &optional nightp polarp content-type)
   "Fetch ICON from cache."
@@ -199,7 +205,7 @@ See `weather-metno-get-image-props'."
       image)))
 
 (defun weather-metno--do-insert-weathericon (_status buffer point icon nightp
-                                                   polarp content-type)
+                                                     polarp content-type)
   "Insert image in BUFFER at POINT.
 This is used by `weather-metno-insert-weathericon' as handler."
   (save-excursion
@@ -254,7 +260,7 @@ The data is available under CC-BY-3.0."
     (if symbol
         symbol
       (let* ((url (weather-metno--weathericon-url icon nightp polarp
-                                                 content-type))
+                                                  content-type))
              (expire-time2 (or expire-time
                                weather-metno-symbol-expire-time))
              (expired (if expire-time2
@@ -592,6 +598,7 @@ LAST-HEADLINE should point to the place where icons can be inserted."
 
 (defvar weather-metno-forecast-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "s" 'weather-metno-forecast-search-location)
     (define-key map "p" 'weather-metno-forecast-backward-time)
     (define-key map "n" 'weather-metno-forecast-forward-time)
     (define-key map "P" 'weather-metno-forecast-backward-date)
@@ -675,14 +682,13 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
         (weather-metno-forecast-mode)
         (erase-buffer)
         (goto-char (point-min))
-
         (dolist (location weather-metno--data)
           (weather-metno--insert 'weather-metno-header
-                                (concat "Forecast for "
-                                        (weather-metno--location-format
-                                         (caar location) (cl-cadar location)
-                                         (cl-caddar location))
-                                        "\n"))
+                                 (concat "Forecast for "
+                                         (weather-metno--location-format
+                                          (caar location) (cl-cadar location)
+                                          (cl-caddar location))
+                                         "\n"))
 
           (let ((last-date '(1 1 1)))
             (dolist (forecast (cadr location))
@@ -705,14 +711,14 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
                                     from)))
                   (if (equal from to)
                       (weather-metno--insert 'weather-metno-date-range
-                                            "** " from-string)
+                                             "** " from-string)
                     (weather-metno--insert 'weather-metno-date-range
-                                          "** "
-                                          from-string
-                                          "–"
-                                          (format-time-string
-                                           weather-metno-format-time-string
-                                           to))))
+                                           "** "
+                                           from-string
+                                           "–"
+                                           (format-time-string
+                                            weather-metno-format-time-string
+                                            to))))
                 (setq last-headline (point))
                 (insert "\n")
 
@@ -720,7 +726,7 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
                   (let ((fmt-entry (weather-metno--format-entry entry last-headline)))
                     (unless (weather-metno--string-empty? fmt-entry)
                       (weather-metno--insert 'weather-metno-entry
-                                            "*** " fmt-entry "\n"))
+                                             "*** " fmt-entry "\n"))
                     ))
                 )))
           )
@@ -734,6 +740,34 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
     (goto-char (point-min)))
   (unless no-switch
     (weather-metno--switch-to-forecast-buffer)))
+
+(defun weather-metno--order-locations-by-importance (locations)
+  (let ((pred (lambda (item) (gethash "importance" item))))
+    (cl-reduce (lambda (acc item)
+                 (let ((value (funcall pred item))
+                       (max-value (funcall pred acc)))
+                   (if (> value max-value)
+                       item
+                     acc)))
+               locations)))
+
+(defun weather-metno--fetch-location-data (location)
+  (let ((url-request-extra-headers
+         `(("accept-language" . "english"))))
+    (let ((query-result (url-retrieve-synchronously (format "https://nominatim.openstreetmap.org/search?q=%s&format=json" location))))
+      (with-current-buffer query-result
+        (progn
+          (goto-char (point-min))
+          (search-forward "\n\n" nil t)        
+          (let ((headers (buffer-substring (point-min) (point))))
+            (unless (string-match-p
+                     (concat "^HTTP/1.1 "
+                             "\\(200 OK\\|203 "
+                             "Non-Authoritative Information\\)")
+                     headers)
+              (error "Unable to fetch data")))
+          (message (buffer-substring (point-min) (point)))
+          (json-parse-string (buffer-substring (point) (point-max))))))))
 
 ;;;###autoload
 (defun weather-metno-forecast-location (lat lon &optional msl)
@@ -752,6 +786,28 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
     (weather-metno-update lat lon msl)
     (weather-metno-forecast)))
 
+(defun weather-metno-forecast-search-location (location)
+  (interactive
+   (list
+    (read-string "Location: "
+                 weather-metno-location-name)))
+  (message "Searching location %s" location)
+  (let ((data (weather-metno--fetch-location-data location)))
+    (when (eq (length data) 0)
+      (error "No matches."))
+    (when (not (eq (length data) 1))
+      (message "Multiple matches. Using the most relevant one."))      
+    (let* ((loc (weather-metno--order-locations-by-importance data))
+           (address-type (string-to-number (gethash "addresstype" loc)))
+           (type (string-to-number (gethash "type" loc)))
+           (name (gethash "name" loc))
+           (lon (string-to-number (gethash "lon" loc)))
+           (lat (string-to-number (gethash "lat" loc))))
+      (setq weather-metno-location-name name)
+      ;; (setq weather-metno-location-latitude lat)
+      ;; (setq weather-metno-location-longitude lon)
+      (weather-metno-update lat lon nil)
+      (weather-metno-forecast))))
 
 (provide 'weather-metno)
 
