@@ -571,6 +571,17 @@ E.g. temperature, pressure, precipitation, ..."
    (cdr (assq 'code attributes)))
   "")
 
+(defun weather-metno--format--symbol (attributes last-headline)
+  "Format symbol."
+  
+  (let* ((number (cdr (assq 'code attributes)))
+         (image (weather-metno-get-weathericon number)))
+    (if image
+        (propertize "icon"
+                    'display (append image '(:ascent center))
+                    'rear-nonsticky '(display))
+      "")))
+
 ;; Todo the last-headline thing sucks. Find something better!
 (defun weather-metno--format-entry (entry &optional last-headline)
   "Format ENTRY.
@@ -638,7 +649,6 @@ LAST-HEADLINE should point to the place where icons can be inserted."
 (define-derived-mode weather-metno-forecast-mode special-mode
   "metno-forecast"
   "Major mode for showing weather forecasts.
-
 \\{weather-metno-forecast-mode-map}"
   :group 'weather-metno)
 
