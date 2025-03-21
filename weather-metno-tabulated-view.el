@@ -76,10 +76,7 @@ See `weather-metno-query' for more information."
   (unless weather-metno--data
     (weather-metno-update))
 
-  (weather-metno--check-weathericons)
-  
-  (let ((data nil)
-        (buffer (get-buffer-create weather-metno-buffer-name)))
+  (let ((data nil))
     (dotimes (i 10)
       (let* ((current-time (current-time))
              (days-in-seconds (* i 24 60 60)) ;; N days in seconds
@@ -88,30 +85,33 @@ See `weather-metno-query' for more information."
                           ,@(weather-metno--format-forecast-items-list
                              (calendar-current-date i)))))
         (setq data (append data (list new-entry)))))
-    (with-current-buffer buffer
-      (setq buffer-read-only nil)
-      (erase-buffer)
+    (with-current-buffer (get-buffer-create weather-metno-buffer-name)
+      (let ((inhibit-read-only t))
+        (weather-metno-forecast-mode)
+        (erase-buffer)
+        (goto-char (point-min))
+        (apply 'weather-metno--location-format (caar weather-metno--data))
+        (weather-metno--insert 'weather-metno-header
+                               (concat "Forecast for "
+                                       (apply 'weather-metno--location-format (caar weather-metno--data))) "\n")
+        (add-text-properties (point-min) (point) '(face weather-metno-header))
+        (goto-char (point-max))
+        (make-vtable
+         :columns '("Date" "Symbol" "Precipitation" "Hours" "℃ min-max" "T" "WS" "WG" "WD" "WDS")
+         :objects data
+         :separator-width 5
+         :keymap (define-keymap
+                   "s" #'weather-metno-forecast-search-location
+                   "q" #'quit-window))
+        (goto-char (point-max))
+        (let ((calendar-latitude (string-to-number (nth 0 (caar weather-metno--data))))
+              (calendar-longitude (string-to-number (nth 1 (caar weather-metno--data)))))
+          (insert (solar-sunrise-sunset-string (calendar-current-date) t))))
       (goto-char (point-min))
-      (apply 'weather-metno--location-format (caar weather-metno--data))
-      (weather-metno--insert 'weather-metno-header
-                             (concat "Forecast for "
-                                     (apply 'weather-metno--location-format (caar weather-metno--data))) "\n")
-      (add-text-properties (point-min) (point) '(face weather-metno-header))
-      (goto-char (point-max))
-      (make-vtable
-       :columns '("Date" "Symbol" "Precipitation" "Hours" "℃ min-max" "T" "WS" "WG" "WD" "WDS")
-       :objects data
-       :separator-width 5
-       :keymap (define-keymap
-                 "s" #'weather-metno-forecast-search-location
-                 "q" #'quit-window))
-      (goto-char (point-max))
-      (let ((calendar-latitude (string-to-number (nth 0 (caar w))))
-            (calendar-longitude (string-to-number (nth 1 (caar w)))))
-        (insert (solar-sunrise-sunset-string (calendar-current-date) t)))
-      (setq buffer-read-only t))
-    (setq weather-metno--display-function #'weather-metno-condensed-view)    
-    (pop-to-buffer buffer)))
+      (setq weather-metno--display-function #'weather-metno-condensed-view))
+    ;;TODO: unless no-switch ...
+    (weather-metno--switch-to-forecast-buffer)))
 
 (provide 'weather-metno-tabulated-view)
+
 ;;; weather-metno-mode-tabulated-view.el ends here

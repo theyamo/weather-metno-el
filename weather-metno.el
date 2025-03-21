@@ -156,9 +156,9 @@ Only png format icons are currently used."
 (defvar weather-metno-symbol--storage nil
   "Symbol cache.")
 
-(defconst weather-metno--display-functions '(#'weather-metno-forecast #'weather-metno-condensed-view))
+(defconst weather-metno--display-functions '(weather-metno-forecast weather-metno-condensed-view))
 
-(defvar weather-metno--display-function #'weather-metno-forecast
+(defvar weather-metno--display-function #'weather-metno-condensed-view
   "Function to display the forecast.")
 
 (defun weather-metno-clear-symbol-cache ()
