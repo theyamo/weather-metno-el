@@ -665,10 +665,11 @@ LAST-HEADLINE should point to the place where icons can be inserted."
 
 (defun weather-metno--location-format (lat lon &optional msl)
   "Format LAT LON MSL into a string."
-
-  ;; TODO: round some decimals so this doesn't fail so often
-  (if (and (= (string-to-number lat) weather-metno-location-latitude)
-           (= (string-to-number lon) weather-metno-location-longitude))
+  ;; The multiplication is to make the comparison only for the first 5 decimals
+  (if (and (= (round (* 10000 (string-to-number lat)))
+              (round (* 10000 weather-metno-location-latitude)))
+           (= (round (* 10000 (string-to-number lon)))
+              (round (* 10000 weather-metno-location-longitude))))
       weather-metno-location-name
     (format "location %s,%s %s" lat lon msl)))
 
