@@ -684,7 +684,7 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
     (weather-metno-update))
 
   (weather-metno--check-weathericons)
-  
+
   (with-current-buffer (get-buffer-create weather-metno-buffer-name)
     (save-excursion
       (let ((inhibit-read-only t))
@@ -708,7 +708,7 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
                      (to (cadr date-range))
                      (date (weather-metno--time-to-date to))
                      last-headline)
-                
+
                 (unless (calendar-date-equal date last-date)
                   (weather-metno--insert
                    'weather-metno-date
@@ -769,7 +769,7 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
       (with-current-buffer query-result
         (progn
           (goto-char (point-min))
-          (search-forward "\n\n" nil t)        
+          (search-forward "\n\n" nil t)
           (let ((headers (buffer-substring (point-min) (point))))
             (unless (string-match-p
                      (concat "^HTTP/1.1 "
