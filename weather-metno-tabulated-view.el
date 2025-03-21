@@ -81,7 +81,7 @@ See `weather-metno-query' for more information."
       (let* ((current-time (current-time))
              (days-in-seconds (* i 24 60 60)) ;; N days in seconds
              (new-time (time-add current-time (seconds-to-time days-in-seconds)))
-             (new-entry `(,(format-time-string weather-metno-format-date-string new-time)
+             (new-entry `(,(format-time-string "%A %m-%d" new-time)
                           ,@(weather-metno--format-forecast-items-list
                              (calendar-current-date i)))))
         (setq data (append data (list new-entry)))))
