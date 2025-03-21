@@ -156,7 +156,7 @@ Only png format icons are currently used."
 (defvar weather-metno-symbol--storage nil
   "Symbol cache.")
 
-(defconst weather-metno--display-functions '(weather-metno-forecast weather-metno-condensed-view))
+(defconst weather-metno--display-functions '(weather-metno-forecast-list-view weather-metno-forecast-condensed-view))
 
 (defvar weather-metno--display-function #'weather-metno-condensed-view
   "Function to display the forecast.")
@@ -678,7 +678,7 @@ LAST-HEADLINE should point to the place where icons can be inserted."
     (list (nth 4 d) (nth 3 d) (nth 5 d))))
 
 ;;;###autoload
-(defun weather-metno-forecast (&optional no-switch)
+(defun weather-metno-forecast-list-view (&optional no-switch)
   "Display weather forecast.
 If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
   (interactive)
@@ -838,7 +838,7 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
 ;; (funcall weather-metno--display-function nil)))))
 
 ;;(defun weather-metno-forecast-NEW (&optional no-switch arg)
-(defun weather-metno-forecast-NEW (&optional arg no-switch)
+(defun weather-metno-forecast (&optional arg no-switch)
   "Display weather forecast.  If called with universal-argument, or no default location has been set, asks the user for location and queries its coordinates from NOMATIM service.
 If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
   (interactive "P")

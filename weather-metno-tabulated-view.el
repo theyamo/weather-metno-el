@@ -71,7 +71,7 @@ See `weather-metno-query' for more information."
     (when query-data
       (split-string (weather-metno-query-format weather-metno--condensed-forecast-format query-data nil "org-weather-metno--f-" "?")))))
 
-(defun weather-metno-condensed-view (&optional no-switch)
+(defun weather-metno-forecast-condensed-view (&optional no-switch)
   (interactive)
   (unless weather-metno--data
     (weather-metno-update))
@@ -108,7 +108,7 @@ See `weather-metno-query' for more information."
               (calendar-longitude (string-to-number (nth 1 (caar weather-metno--data)))))
           (insert (solar-sunrise-sunset-string (calendar-current-date) t))))
       (goto-char (point-min))
-      (setq weather-metno--display-function #'weather-metno-condensed-view))
+      (setq weather-metno--display-function #'weather-metno-forecast-condensed-view))
     ;;TODO: unless no-switch ...
     (weather-metno--switch-to-forecast-buffer)))
 
