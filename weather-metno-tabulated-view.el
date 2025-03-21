@@ -92,6 +92,7 @@ See `weather-metno-query' for more information."
       (setq buffer-read-only nil)
       (erase-buffer)
       (goto-char (point-min))
+      (apply 'weather-metno--location-format (caar weather-metno--data))
       (weather-metno--insert 'weather-metno-header
                              (concat "Forecast for "
                                      (apply 'weather-metno--location-format (caar weather-metno--data))) "\n")

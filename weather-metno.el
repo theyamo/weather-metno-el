@@ -665,6 +665,8 @@ LAST-HEADLINE should point to the place where icons can be inserted."
 
 (defun weather-metno--location-format (lat lon &optional msl)
   "Format LAT LON MSL into a string."
+
+  ;; TODO: round some decimals so this doesn't fail so often
   (if (and (= (string-to-number lat) weather-metno-location-latitude)
            (= (string-to-number lon) weather-metno-location-longitude))
       weather-metno-location-name
@@ -777,7 +779,6 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
                              "Non-Authoritative Information\\)")
                      headers)
               (error "Unable to fetch data")))
-          (message (buffer-substring (point-min) (point)))
           (json-parse-string (buffer-substring (point) (point-max))))))))
 
 (defun weather-metno--check-weathericons ()
@@ -814,7 +815,6 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
    (list
     (read-string "Location: "
                  weather-metno-location-name)))
-  (message "Searching location %s" location)
   (let ((data (weather-metno--fetch-location-data location)))
     (when (eq (length data) 0)
       (error "No matches."))
@@ -827,15 +827,30 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
            (lon (string-to-number (gethash "lon" loc)))
            (lat (string-to-number (gethash "lat" loc))))
       (setq weather-metno-location-name name)
-      ;; (setq weather-metno-location-latitude lat)
-      ;; (setq weather-metno-location-longitude lon)
-      (unless (string= name weather-metno-location-name)
-        (setq weather-metno-location-name name)
-        (weather-metno-update lat lon nil)
-        (funcall weather-metno--display-function nil)))))
+      (setq weather-metno-location-longitude lon)
+      (setq weather-metno-location-latitude lat)
+      (setq weather-metno-location-msl nil)
+      (weather-metno-update lat lon nil))))
 
-(defun weather-metno-show ()
-  (interactive))
+;; (unless (string= name weather-metno-location-name)
+;;   (setq weather-metno-location-name name)
+;;   (weather-metno-update lat lon nil)))))
+;; (funcall weather-metno--display-function nil)))))
+
+;;(defun weather-metno-forecast-NEW (&optional no-switch arg)
+(defun weather-metno-forecast-NEW (&optional arg no-switch)
+  "Display weather forecast.  If called with universal-argument, or no default location has been set, asks the user for location and queries its coordinates from NOMATIM service.
+If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
+  (interactive "P")
+  (if (or (and (eq (weather-metno--get-default-location-latitude) 0)
+               (eq (weather-metno--get-default-location-longitude) 0))
+          (not (null arg)))
+      (call-interactively 'weather-metno-forecast-search-location))
+  (unless weather-metno--data
+    (weather-metno-update))
+  (weather-metno--check-weathericons)
+  (call-interactively weather-metno--display-function nil))
+
 (provide 'weather-metno)
 
 ;;; weather-metno.el ends here
