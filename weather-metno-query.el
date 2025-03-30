@@ -28,6 +28,16 @@
 
 (require 'cl-lib)
 
+(defun weather-metno-query--time-less-or-equal-p (time1 time2)
+  "Return non-nil if TIME1 is less than or equal to TIME2."
+  (or (time-less-p time1 time2)
+      (time-equal-p time1 time2)))
+
+(defun weather-metno-query--time-more-or-equal-p (time1 time2)
+  "Return non-nil if TIME1 is equal to or greater than TIME2."
+  (or (time-equal-p time1 time2)
+      (not (time-less-p time1 time2))))
+
 (defun weather-metno-query--split (body)
   "Split BODY at every :get."
   (let (ret current)
@@ -208,11 +218,6 @@ Example:
           body2)
        ret)))
 
-(defun date-inside (d1 d2)
-  (and (time-more-or-equal-p from ,date)
-       (time-less-or-equal-p to ,end-date)
-       ))
-
 (defmacro weather-metno-query-v2 (x &rest body)
   "Queries DATA for values at LOCATION for DATE.
 
@@ -254,10 +259,10 @@ Example:
            ;;          (format-time-string "%A %Y-%m-%d %H:%M" from)
            ;;          (format-time-string "%A %Y-%m-%d %H:%M" to))
 
-           (when (or (and (time-more-or-equal-p from ,date)
-                          (time-less-or-equal-p from ,end-date))
-                     (and (time-more-or-equal-p to ,date)
-                          (time-less-or-equal-p to ,end-date)))
+           (when (or (and (weather-metno-query--time-more-or-equal-p from ,date)
+                          (weather-metno-query--time-less-or-equal-p from ,end-date))
+                     (and (weather-metno-query--time-more-or-equal-p to ,date)
+                          (weather-metno-query--time-less-or-equal-p to ,end-date)))
              (dolist (entry (cdr forecast))
                (case (car entry)
                  ,@(weather-metno-query--merge-cases

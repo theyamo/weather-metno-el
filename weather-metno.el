@@ -35,8 +35,9 @@
 (require 'url-cache)
 (require 'xml)
 (require 'calendar)
-
 (require 'cl-lib)
+
+(require 'weather-metno-tabulated-view)
 
 (defgroup weather-metno nil
   "Weather data from met.no in Emacs."
@@ -120,26 +121,15 @@ See `format-time-string' for a description of the format."
   :group 'weather-metno
   :type 'string)
 
-(defcustom weather-metno-weathericon-directory
-  nil
-  "Weathericon directory.  Leave to nil to disable weathericons.
-
-Version 2.0 of weathericons API does not return images. Instead
-it returns an archive containing the icons and expects them to be
-used locally.
-
-If you wish to use weathericons, you must fetch the archive
-yourself and extract to your preferred location and then set this
-variable.
-
-Example of how to fetch and extract icons using curl:
-
-curl -X GET --header 'Accept: application/x-download'
-'https://api.met.no/weatherapi/weathericon/2.0/data' | tar xvf -
-
-Only png format icons are currently used."
-  :group 'weather-metno
-  :type 'string)
+(defcustom weather-metno-weathericons-directory
+  'ask
+  "Weathericons directory.  When nil and using graphical display, user will be queried for directory to save weathericons, and the directory will be saved here.
+Setting it to `disabled' prevents from asking the directory and disables weathericons.."
+  :type '(choice
+          (const :tag "Ask" ask)
+          (const :tag "Disabled" nil)
+          (string :tag "Directory")) 
+  :group 'weather-metno)
 
 (defconst weather-metno-url "https://api.met.no/weatherapi/"
   "URL to api.met.no.")
@@ -156,10 +146,13 @@ Only png format icons are currently used."
 (defvar weather-metno-symbol--storage nil
   "Symbol cache.")
 
-(defconst weather-metno--display-functions '(weather-metno-forecast-list-view weather-metno-forecast-condensed-view))
-
-(defvar weather-metno--display-function #'weather-metno-condensed-view
-  "Function to display the forecast.")
+(defcustom weather-metno-display-function #'weather-metno-forecast-list-view 
+  "Function to display the forecast."
+  :type `(choice
+          (function-item
+           ,#'weather-metno-forecast-list-view)
+          (function-item
+           ,#'weather-metno-forecast-condensed-view)))
 
 (defun weather-metno-clear-symbol-cache ()
   (interactive)
@@ -176,7 +169,7 @@ Only png format icons are currently used."
 
 (defun weather-metno--weathericon-url (icon &optional nightp polarp content-type)
   "Create URL to get ICON from the weathericon API."
-  (format "file:%s/%s.png" weather-metno-weathericon-directory icon))
+  (format "file:%s/%s.png" weather-metno-weathericons-directory icon))
 
 (defcustom weather-metno-get-image-props nil
   "Image props for weather symbols.
@@ -238,24 +231,24 @@ This uses the met.no weathericon API
 http://api.met.no/weatherapi/weathericon/1.0/documentation
 
 The data is available under CC-BY-3.0."
-  (if weather-metno-weathericon-directory
-      (let ((symbol (weather-metno--symbol-cache-fetch icon nightp polarp content-type)))
-        (if symbol
-            (put-image symbol point)
-          (let* ((url (weather-metno--weathericon-url icon nightp polarp
-                                                      content-type))
-                 (expire-time2 (or expire-time
-                                   weather-metno-symbol-expire-time))
-                 (expired (if expire-time2
-                              (url-cache-expired url expire-time2)
-                            t)))
-            (if (not expired)
-                (with-current-buffer (url-fetch-from-cache url)
-                  (weather-metno--do-insert-weathericon nil buffer point icon nightp polarp content-type))
-              (url-retrieve
-               url
-               'weather-metno--do-insert-weathericon
-               (list buffer point icon nightp polarp content-type))))))))
+  (when (stringp weather-metno-weathericons-directory)
+    (let ((symbol (weather-metno--symbol-cache-fetch icon nightp polarp content-type)))
+      (if symbol
+          (put-image symbol point)
+        (let* ((url (weather-metno--weathericon-url icon nightp polarp
+                                                    content-type))
+               (expire-time2 (or expire-time
+                                 weather-metno-symbol-expire-time))
+               (expired (if expire-time2
+                            (url-cache-expired url expire-time2)
+                          t)))
+          (if (not expired)
+              (with-current-buffer (url-fetch-from-cache url)
+                (weather-metno--do-insert-weathericon nil buffer point icon nightp polarp content-type))
+            (url-retrieve
+             url
+             'weather-metno--do-insert-weathericon
+             (list buffer point icon nightp polarp content-type))))))))
 
 (defun weather-metno-get-weathericon (icon &optional nightp polarp content-type
                                            expire-time)
@@ -264,21 +257,22 @@ Fetch is done synchronously.  Use `weather-metno-insert-weathericon' if you just
 want to insert the icon into a buffer.
 
 The data is available under CC-BY-3.0."
-  (let ((symbol (weather-metno--symbol-cache-fetch icon nightp polarp content-type)))
-    (if symbol
-        symbol
-      (let* ((url (weather-metno--weathericon-url icon nightp polarp
-                                                  content-type))
-             (expire-time2 (or expire-time
-                               weather-metno-symbol-expire-time))
-             (expired (if expire-time2
-                          (url-cache-expired url expire-time2)
-                        t)))
-        (if (not expired)
-            (with-current-buffer (url-fetch-from-cache url)
-              (weather-metno--get-image icon nightp polarp content-type))
-          (with-current-buffer (url-retrieve-synchronously url)
-            (weather-metno--get-image icon nightp polarp content-type)))))))
+  (when (stringp weather-metno-weathericons-directory)
+    (let ((symbol (weather-metno--symbol-cache-fetch icon nightp polarp content-type)))
+      (if symbol
+          symbol
+        (let* ((url (weather-metno--weathericon-url icon nightp polarp
+                                                    content-type))
+               (expire-time2 (or expire-time
+                                 weather-metno-symbol-expire-time))
+               (expired (if expire-time2
+                            (url-cache-expired url expire-time2)
+                          t)))
+          (if (not expired)
+              (with-current-buffer (url-fetch-from-cache url)
+                (weather-metno--get-image icon nightp polarp content-type))
+            (with-current-buffer (url-retrieve-synchronously url)
+              (weather-metno--get-image icon nightp polarp content-type))))))))
 
 (defun weather-metno--parse-time-string (time-string)
   "Parse a RFC3339 compliant TIME-STRING.
@@ -668,7 +662,7 @@ LAST-HEADLINE should point to the place where icons can be inserted."
      (setq weather-metno--data data)
      ;; If a forecast buffer exists then update it but do not switch.
      (when (get-buffer weather-metno-buffer-name)
-       (funcall weather-metno--display-function t)))
+       (funcall weather-metno-display-function t)))
    (or lat weather-metno-location-latitude)
    (or lon weather-metno-location-longitude)
    (or msl weather-metno-location-msl)))
@@ -695,8 +689,6 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
   (interactive)
   (unless weather-metno--data
     (weather-metno-update))
-
-  (weather-metno--check-weathericons)
 
   (with-current-buffer (get-buffer-create weather-metno-buffer-name)
     (save-excursion
@@ -793,18 +785,19 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
           (json-parse-string (buffer-substring (point) (point-max))))))))
 
 (defun weather-metno--check-weathericons ()
-  "Check if `weather-metno-weathericon-directory` is nil, if so, ask to download and extract the icon package."
+  "Check if `weather-metno-weathericons-directory` is `ask', if so, ask to download and extract the icon package."
   (interactive)
-  (when (and (null weather-metno-weathericon-directory)
-             (y-or-n-p "The weathericons directory is not set. Download and extract the package? "))
+  (when (and
+         (eq 'ask weather-metno-weathericons-directory)
+         (display-images-p)
+         (y-or-n-p "Weathericons directory is not set. Download and extract the package? "))
     (let ((dir (read-directory-name "Select directory to clone weathericons into: "))
           (zip-file (concat temporary-file-directory "/weathericons.zip")))
       (url-copy-file "https://github.com/metno/weathericons/archive/refs/heads/main.zip" zip-file t)
       (shell-command (format "unzip -qq -o -j %s \"weathericons-main/weather/png/*\" -d %s" zip-file dir))
-      (setq weather-metno-weathericon-directory dir)
-      (customize-save-variable 'weather-metno-weathericon-directory dir))))
+      (setq weather-metno-weathericons-directory dir)
+      (customize-save-variable 'weather-metno-weathericons-directory dir))))
 
-;;;###autoload
 (defun weather-metno-forecast-location (lat lon &optional msl)
   (interactive
    (list
@@ -819,9 +812,12 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
 
   (unless (equal (list lat lon msl) weather-metno--data)
     (weather-metno-update lat lon msl)
-    (funcall weather-metno--display-function nil)))
+    (funcall weather-metno-display-function nil)))
 
+;;;###autoload
 (defun weather-metno-forecast-search-location (location)
+  "Get weather forecast for location.
+If NO-SWITCH is non-nil then do not switch to weather forecast buffer."  
   (interactive
    (list
     (read-string "Location: "
@@ -841,14 +837,17 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
       (setq weather-metno-location-longitude lon)
       (setq weather-metno-location-latitude lat)
       (setq weather-metno-location-msl nil)
-      (weather-metno-update lat lon nil))))
+      (weather-metno--check-weathericons)
+      ;; FIXME: these cause the buffer to be updated twice
+      (weather-metno-update lat lon nil)
+      (call-interactively weather-metno-display-function nil))))
 
 ;; (unless (string= name weather-metno-location-name)
 ;;   (setq weather-metno-location-name name)
 ;;   (weather-metno-update lat lon nil)))))
 ;; (funcall weather-metno--display-function nil)))))
 
-;;(defun weather-metno-forecast-NEW (&optional no-switch arg)
+;;;###autoload
 (defun weather-metno-forecast (&optional arg no-switch)
   "Display weather forecast.  If called with universal-argument, or no default location has been set, asks the user for location and queries its coordinates from NOMATIM service.
 If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
@@ -856,11 +855,12 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
   (if (or (and (eq (weather-metno--get-default-location-latitude) 0)
                (eq (weather-metno--get-default-location-longitude) 0))
           (not (null arg)))
-      (call-interactively 'weather-metno-forecast-search-location))
-  (unless weather-metno--data
-    (weather-metno-update))
-  (weather-metno--check-weathericons)
-  (call-interactively weather-metno--display-function nil))
+      (call-interactively 'weather-metno-forecast-search-location)
+    (weather-metno--check-weathericons)
+    ;; FIXME: these may cause the buffer to be updated twice
+    (unless weather-metno--data
+      (weather-metno-update))
+    (call-interactively weather-metno-display-function nil)))
 
 (provide 'weather-metno)
 

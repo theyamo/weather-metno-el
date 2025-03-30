@@ -66,22 +66,6 @@ See `org-weather-metno-query' and `weather-query-format' for more information."
   "Convert DATE-RANGE to some time."
   (format-time-string "%Hh" (car date-range)))
 
-(defun org-weather-metno--f-symbols (number)
-  "Fetch symbol for NUMBER."
-  (unless (listp number)
-    (setq number (list number)))
-  (mapconcat (lambda (n)
-               (concat (org-weather-metno--f-symbol n) " "))
-             number))
-
-(defun org-weather-metno--f-stuff (number)
-  "Fetch symbol for NUMBER."
-  (unless (listp number)
-    (setq number (list number)))
-  (mapconcat (lambda (n)
-               (concat (org-weather-metno--f-symbol n) " "))
-             number))
-
 (defun org-weather-metno--f-times (number)
   "Fetch symbol for NUMBER."
   (unless (listp number)
