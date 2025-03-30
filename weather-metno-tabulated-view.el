@@ -9,6 +9,7 @@
 (require 'calendar)
 (require 'cl-lib)
 (require 'vtable)
+(require 'solar)
 
 (require 'weather-metno-query)
 
@@ -79,7 +80,7 @@ See `weather-metno-query' for more information."
   (char-to-string (cdr (assq (intern str) weather-metno--wind-direction-map))))
 
 (defun weather-metno--transpose-2d-list (matrix)
-  (apply 'mapcar* 'list matrix))
+  (apply 'cl-mapcar 'list matrix))
 
 (defun weather-metno--calendar-to-emacs-time (date)
   "Return the current time with seconds and minutes set to zero."
