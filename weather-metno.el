@@ -49,7 +49,7 @@
   (if (boundp 'user-location-name)
       user-location-name
     (if (boundp 'calendar-location-name)
-        calendar-location-name
+        (eval calendar-location-name)
       "")))
 
 (defcustom weather-metno-search-server
