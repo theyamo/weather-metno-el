@@ -160,7 +160,7 @@ Example:
                       (calendar-date-equal ,date to-date))
              ;; (setq current-state '(from-date to-date))
              (dolist (entry (cdr forecast))
-               (case (car entry)
+               (cl-case (car entry)
                  ,@(weather-metno-query--merge-cases
                     (mapcar
                      (lambda (ops)
@@ -264,7 +264,7 @@ Example:
                      (and (weather-metno-query--time-more-or-equal-p to ,date)
                           (weather-metno-query--time-less-or-equal-p to ,end-date)))
              (dolist (entry (cdr forecast))
-               (case (car entry)
+               (cl-case (car entry)
                  ,@(weather-metno-query--merge-cases
                     (mapcar
                      (lambda (ops)
