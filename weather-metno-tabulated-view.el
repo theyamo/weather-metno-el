@@ -10,6 +10,7 @@
 (require 'cl-lib)
 (require 'vtable)
 (require 'solar)
+(require 'lunar)
 
 (require 'weather-metno-query)
 
@@ -114,6 +115,19 @@ See `weather-metno-query' for more information."
             (push formatted ret)))))
     (nreverse ret)))
 
+(defun weather-metno--insert-lunar-phase-info (day)
+  (let* ((month-year (list (car day)
+                           (nth 2 day)))
+         (phases (apply 'lunar-phase-list month-year)))
+    (dolist (phase phases)
+      (if (equal (car phase) day)
+          (let ((eclipse (nth 3 phase)))
+            (weather-metno--insert 'weather-metno-lunar-phase
+                                   (format "%s\n"
+                                           (concat (lunar-phase-name (nth 2 phase)) " "
+                                                   (cadr phase) (unless (string-empty-p eclipse) " ")
+                                                   eclipse))))))))
+
 ;;;###autoload
 (defun weather-metno-forecast-condensed-view (&optional no-switch)
   (interactive)
@@ -125,7 +139,6 @@ See `weather-metno-query' for more information."
         (display-line-numbers-mode 0)
         (erase-buffer)
         (goto-char (point-min))
-        ;; (apply 'weather-metno--location-format (caar weather-metno--data))
         (weather-metno--insert 'weather-metno-header
                                (concat "Forecast for "
                                        (apply 'weather-metno--location-format (caar weather-metno--data))) "\n")
@@ -133,13 +146,17 @@ See `weather-metno-query' for more information."
           (let* ((current-day (calendar-current-date day))
                  (day-data (weather-metno--get-forecast-for-day current-day)))
             (let ((calendar-latitude (string-to-number (nth 0 (caar weather-metno--data))))
-                  (calendar-longitude (string-to-number (nth 1 (caar weather-metno--data)))))
+                  (calendar-longitude (string-to-number (nth 1 (caar weather-metno--data))))
+                  (time-string (format-time-string
+                                weather-metno-format-date-string
+                                (weather-metno--calendar-to-emacs-time current-day))))
               (weather-metno--insert 'weather-metno-entry
-                                     (format "\n%s: %s\n\n"
-                                             (format-time-string
-                                              weather-metno-format-date-string
-                                              (weather-metno--calendar-to-emacs-time current-day))
-                                             (solar-sunrise-sunset-string current-day t))))
+                                     (format "\n%s: %s\n%s"
+                                             time-string
+                                             (solar-sunrise-sunset-string current-day t)
+                                             (make-string (+ (string-width time-string) 2) ? )))
+              (weather-metno--insert-lunar-phase-info current-day)
+              (insert "\n"))
             (push weather-metno-forecast--table-view-field-descriptions day-data)
             ;; Remove any empty strings that remain in data when icons are disabled
             (when (or (not (stringp weather-metno-weathericons-directory))
@@ -155,7 +172,12 @@ See `weather-metno-query' for more information."
                        "s" #'weather-metno-forecast-search-location
                        "q" #'quit-window))
             (goto-char (point-max))
-            )))
+            ))
+        (insert "\n")
+        (weather-metno--insert
+         'weather-metno-footer
+         "Weather data from The Norwegian Meteorological Institute (CC BY 3.0)\n" ;; TODO link!
+         ))
       (goto-char (point-min))))
   (unless no-switch
     (weather-metno--switch-to-forecast-buffer)))

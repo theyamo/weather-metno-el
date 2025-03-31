@@ -432,9 +432,14 @@ documentation of the web API."
   "Face for entry."
   :group 'weather-metno)
 
-(defface weather-metno-footer
+(defface weather-metno-lunar-phase
   '((t :inherit font-lock-comment-face))
   "Face for entry."
+  :group 'weather-metno)
+
+(defface weather-metno-footer
+  '((t :inherit font-lock-comment-face))
+  "Face for footer."
   :group 'weather-metno)
 
 (defun weather-metno--insert (face &rest args)
@@ -779,7 +784,7 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
   (when (and
          (eq 'ask weather-metno-weathericons-directory)
          (display-images-p))
-    (let ((response (read-char-from-minibuffer "Weathericons directory is not set. Download and extract the package? [y]/[n]/[d]on't ask) ")))
+    (let ((response (read-char-from-minibuffer "Weathericons directory is not set. Download and extract the package? (y)es/(n)o/(d)on't ask ")))
       (cond
        ((eq response ?y)
         (let ((dir (read-directory-name "Select directory to clone weathericons into: "))
