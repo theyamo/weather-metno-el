@@ -50,7 +50,7 @@ See `weather-metno-query' for more information."
   "{symbol|:symbol}={min-temperature} – {max-temperature} ℃={precipitation-min} – {precipitation-max} ㎜={wind-speed} ({wind-gust}) m/s={wind-direction-symbol}")
 
 (defun weather-metno-tabulated-view--f-symbol (code)
-  "Format symbol."  
+  "Format symbol."
   (let* ((image (if (and (stringp weather-metno-weathericons-directory)
                          (display-images-p))
                     (weather-metno-get-weathericon code)
@@ -144,7 +144,7 @@ See `weather-metno-query' for more information."
                                            (solar-sunrise-sunset-string current-day t))))
           (push weather-metno-forecast--table-view-field-descriptions day-data)
           ;; Remove any empty strings that remain in data when icons are disabled
-          (when (or (not weather-metno-weathericons-directory)
+          (when (or (not (stringp weather-metno-weathericons-directory))
                     (not (display-images-p)))
             (setq day-data (mapcar (lambda (sublist)
                                      (cl-remove-if (lambda (s) (string= s "")) sublist))
