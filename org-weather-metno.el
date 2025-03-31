@@ -45,11 +45,12 @@
 
 (defcustom org-weather-metno-query
   '(:get temperature :name temperature-max :select value :each string-to-number :max
-         :get temperature :name temperature-min :select value :each string-to-number :min
-         :get temperature :name temperature-avg :select value :each string-to-number :reduce org-weather-metno~q-avg
-         :get precipitation :name precipitation-max :select value :each string-to-number :max
-         :get precipitation :name precipitation-min :select value :each string-to-number :min
-         :get symbol :select number :each string-to-number :max)
+    :get temperature :name temperature-min :select value :each string-to-number :min
+    :get temperature :name temperature-avg :select value :each string-to-number
+      :reduce org-weather-metno~q-avg
+    :get precipitation :name precipitation-max :select value :each string-to-number :max
+    :get precipitation :name precipitation-min :select value :each string-to-number :min
+    :get symbol :select number :each string-to-number :max)
   "The query used by `org-weather-metno-format'.
 See `weather-metno-query' for more information."
   :group 'weather-metno)
@@ -65,24 +66,6 @@ See `org-weather-metno-query' and `weather-query-format' for more information."
 (defun org-weather-metno--f-time (date-range)
   "Convert DATE-RANGE to some time."
   (format-time-string "%Hh" (car date-range)))
-
-(defun org-weather-metno--f-times (number)
-  "Fetch symbol for NUMBER."
-  (unless (listp number)
-    (setq number (list number)))
-  (mapconcat (lambda (n)
-               (let* ((date-range (cdr n))
-                      (date-start (car (car (cdr n))))
-                      (date-end (car (cdr (car (cdr n)))))
-                      (date-start-string (format-time-string
-                                          weather-metno-format-time-string
-                                          date-start))
-                      (date-end-string (format-time-string
-                                        weather-metno-format-time-string
-                                        date-end))
-                      )
-                 (concat date-start-string "-" date-end-string " ")))
-             number))
 
 (defun org-weather-metno--f-symbol (number)
   "Fetch symbol for NUMBER."
