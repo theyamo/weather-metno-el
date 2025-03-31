@@ -171,7 +171,7 @@ Setting it to `disabled' prevents from asking the directory and disables weather
   "Create URL to get ICON from the weathericon API."
   (format "file:%s/%s.png" weather-metno-weathericons-directory icon))
 
-(defcustom weather-metno-get-image-props nil
+(defcustom weather-metno-get-image-props '(:scale 0.25)
   "Image props for weather symbols.
 See `create-image' or \"(elisp) Images\" for an explanation.
 
