@@ -778,14 +778,22 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
   (interactive)
   (when (and
          (eq 'ask weather-metno-weathericons-directory)
-         (display-images-p)
-         (y-or-n-p "Weathericons directory is not set. Download and extract the package? "))
-    (let ((dir (read-directory-name "Select directory to clone weathericons into: "))
-          (zip-file (concat temporary-file-directory "/weathericons.zip")))
-      (url-copy-file "https://github.com/metno/weathericons/archive/refs/heads/main.zip" zip-file t)
-      (shell-command (format "unzip -qq -o -j %s \"weathericons-main/weather/png/*\" -d %s" zip-file dir))
-      (setq weather-metno-weathericons-directory dir)
-      (customize-save-variable 'weather-metno-weathericons-directory dir))))
+         (display-images-p))
+    (let ((response (read-char-from-minibuffer "Weathericons directory is not set. Download and extract the package? [y]/[n]/[d]on't ask) ")))
+      (cond
+       ((eq response ?y)
+        (let ((dir (read-directory-name "Select directory to clone weathericons into: "))
+              (zip-file (concat temporary-file-directory "/weathericons.zip")))
+          (url-copy-file "https://github.com/metno/weathericons/archive/refs/heads/main.zip" zip-file t)
+          (shell-command (format "unzip -qq -o -j %s \"weathericons-main/weather/png/*\" -d %s" zip-file dir))
+          (setq weather-metno-weathericons-directory dir)
+          (customize-save-variable 'weather-metno-weathericons-directory dir)))
+       ((eq response ?n)
+        (message "Operation canceled."))
+       ((eq response ?d)
+        (setq weather-metno-weathericons-directory nil))
+       (t
+        (message "Invalid input; please enter y, n, or d."))))))
 
 (defun weather-metno-forecast-location (lat lon &optional msl)
   (interactive
