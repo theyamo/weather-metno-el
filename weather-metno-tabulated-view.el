@@ -135,6 +135,8 @@ See `weather-metno-query' for more information."
       (weather-metno-update)
     (with-current-buffer (get-buffer-create weather-metno-buffer-name)
       (let ((inhibit-read-only t))
+        (remove-images (point-min) (point-max))
+        
         (weather-metno-forecast-mode)
         (display-line-numbers-mode 0)
         (erase-buffer)
