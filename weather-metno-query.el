@@ -158,7 +158,6 @@ Example:
                 (to-date (weather-metno--time-to-date to)))
            (when (and (calendar-date-equal ,date from-date)
                       (calendar-date-equal ,date to-date))
-             ;; (setq current-state '(from-date to-date))
              (dolist (entry (cdr forecast))
                (cl-case (car entry)
                  ,@(weather-metno-query--merge-cases
@@ -168,13 +167,12 @@ Example:
                               (name (weather-metno-query--name ops))
                               (time-name (intern (concat (symbol-name name)
                                                          "-time")))
-                              (foo (weather-metno-query--get-op :foo ops))
                               (max (weather-metno-query--get-op :max ops))
                               (min (weather-metno-query--get-op :min ops)))
                          `(,symbol
                            (let ((storage (assq (quote ,name) ret))
                                  (time-storage
-                                  ,(when (or max min foo)
+                                  ,(when (or max min)
                                      `(assq ',time-name ret)))
                                  (value ,(weather-metno--op-select ops 'entry)))
                              (unless storage
@@ -182,12 +180,10 @@ Example:
                                      (cons (quote ,name)
                                            ,(if max
                                                 'most-negative-fixnum
-                                              (if min
-                                                  'most-positive-fixnum
-                                                (if foo
-                                                    '(list 111))))))
+                                              (when min
+                                                'most-positive-fixnum))))
                                (setq ret (append ret (list storage))))
-                             ,(when (or max min foo)
+                             ,(when (or max min)
                                 `(unless time-storage
                                    (setq time-storage (cons ',time-name nil))
                                    (setq ret (append ret (list time-storage)))))
@@ -202,10 +198,8 @@ Example:
                                                  (cdr storage)
                                                (setcdr time-storage (list from))
                                                value)
-                                          (if foo
-                                              '(setq time-storage (append time-storage (list from)))
-                                            '(append (cdr storage)
-                                                     (list value))))))))))
+                                          '(append (cdr storage)
+                                                   (list value)))))))))
                      body2)))))))
        ,@(mapcar
           (lambda (ops)
@@ -272,13 +266,12 @@ Example:
                               (name (weather-metno-query--name ops))
                               (time-name (intern (concat (symbol-name name)
                                                          "-time")))
-                              (foo (weather-metno-query--get-op :foo ops))
                               (max (weather-metno-query--get-op :max ops))
                               (min (weather-metno-query--get-op :min ops)))
                          `(,symbol
                            (let ((storage (assq (quote ,name) ret))
                                  (time-storage
-                                  ,(when (or max min foo)
+                                  ,(when (or max min)
                                      `(assq ',time-name ret)))
                                  (value ,(weather-metno--op-select ops 'entry)))
                              (unless storage
@@ -286,12 +279,11 @@ Example:
                                      (cons (quote ,name)
                                            ,(if max
                                                 'most-negative-fixnum
-                                              (if min
-                                                  'most-positive-fixnum
-                                                (if foo
-                                                    '(list 111))))))
+                                              (when min
+                                                'most-positive-fixnum
+                                                ))))
                                (setq ret (append ret (list storage))))
-                             ,(when (or max min foo)
+                             ,(when (or max min)
                                 `(unless time-storage
                                    (setq time-storage (cons ',time-name nil))
                                    (setq ret (append ret (list time-storage)))))
@@ -306,10 +298,8 @@ Example:
                                                  (cdr storage)
                                                (setcdr time-storage (list from))
                                                value)
-                                          (if foo
-                                              '(setq time-storage (append time-storage (list from)))
-                                            '(append (cdr storage)
-                                                     (list value))))))))))
+                                          '(append (cdr storage)
+                                                   (list value)))))))))
                      body2)))))))
        ,@(mapcar
           (lambda (ops)

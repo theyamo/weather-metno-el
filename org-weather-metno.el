@@ -38,7 +38,7 @@
 (defvar org-weather-metno~data nil
   "The retreived weather data.")
 
-(defun org-weather-metno~q-avg-OLD (x)
+(defun org-weather-metno~q-avg (x)
   "Calculate average of X."
   (/ (apply #'+ x)
      (length x)))
