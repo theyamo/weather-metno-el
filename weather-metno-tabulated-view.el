@@ -127,10 +127,9 @@ See `weather-metno-query' for more information."
       (erase-buffer)
       (goto-char (point-min))
       ;; (apply 'weather-metno--location-format (caar weather-metno--data))
-      (let ((cur-point (point)))
-        (weather-metno--insert 'weather-metno-header
-                               (concat "Forecast for "
-                                       (apply 'weather-metno--location-format (caar weather-metno--data))) "\n"))
+      (weather-metno--insert 'weather-metno-header
+                             (concat "Forecast for "
+                                     (apply 'weather-metno--location-format (caar weather-metno--data))) "\n")
       (dotimes (day 10)
         (let* ((current-day (calendar-current-date day))
                (day-data (weather-metno--get-forecast-for-day current-day)))
@@ -159,8 +158,8 @@ See `weather-metno-query' for more information."
           (goto-char (point-max))
           )))
     (goto-char (point-min)))
-  (setq weather-metno--display-function #'weather-metno-forecast-condensed-view)
-  (weather-metno--switch-to-forecast-buffer))
+  (unless no-switch
+    (weather-metno--switch-to-forecast-buffer)))
 
 
 (provide 'weather-metno-tabulated-view)
