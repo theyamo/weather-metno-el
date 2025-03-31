@@ -117,47 +117,46 @@ See `weather-metno-query' for more information."
 ;;;###autoload
 (defun weather-metno-forecast-condensed-view (&optional no-switch)
   (interactive)
-  (unless weather-metno--data
-    (weather-metno-update))
-
-  (with-current-buffer (get-buffer-create weather-metno-buffer-name)
-    (let ((inhibit-read-only t))
-      (weather-metno-forecast-mode)
-      (display-line-numbers-mode 0)
-      (erase-buffer)
-      (goto-char (point-min))
-      ;; (apply 'weather-metno--location-format (caar weather-metno--data))
-      (weather-metno--insert 'weather-metno-header
-                             (concat "Forecast for "
-                                     (apply 'weather-metno--location-format (caar weather-metno--data))) "\n")
-      (dotimes (day 10)
-        (let* ((current-day (calendar-current-date day))
-               (day-data (weather-metno--get-forecast-for-day current-day)))
-          (let ((calendar-latitude (string-to-number (nth 0 (caar weather-metno--data))))
-                (calendar-longitude (string-to-number (nth 1 (caar weather-metno--data)))))
-            (weather-metno--insert 'weather-metno-entry
-                                   (format "\n%s: %s\n\n"
-                                           (format-time-string
-                                            weather-metno-format-date-string
-                                            (weather-metno--calendar-to-emacs-time current-day))
-                                           (solar-sunrise-sunset-string current-day t))))
-          (push weather-metno-forecast--table-view-field-descriptions day-data)
-          ;; Remove any empty strings that remain in data when icons are disabled
-          (when (or (not (stringp weather-metno-weathericons-directory))
-                    (not (display-images-p)))
-            (setq day-data (mapcar (lambda (sublist)
-                                     (cl-remove-if (lambda (s) (string= s "")) sublist))
-                                   day-data)))
-          (make-vtable
-           :objects (weather-metno--transpose-2d-list day-data)
-           :separator-width 8
-           :keymap (define-keymap
-                     "g" #'weather-metno-update
-                     "s" #'weather-metno-forecast-search-location
-                     "q" #'quit-window))
-          (goto-char (point-max))
-          )))
-    (goto-char (point-min)))
+  (if (not weather-metno--data)
+      (weather-metno-update)
+    (with-current-buffer (get-buffer-create weather-metno-buffer-name)
+      (let ((inhibit-read-only t))
+        (weather-metno-forecast-mode)
+        (display-line-numbers-mode 0)
+        (erase-buffer)
+        (goto-char (point-min))
+        ;; (apply 'weather-metno--location-format (caar weather-metno--data))
+        (weather-metno--insert 'weather-metno-header
+                               (concat "Forecast for "
+                                       (apply 'weather-metno--location-format (caar weather-metno--data))) "\n")
+        (dotimes (day 10)
+          (let* ((current-day (calendar-current-date day))
+                 (day-data (weather-metno--get-forecast-for-day current-day)))
+            (let ((calendar-latitude (string-to-number (nth 0 (caar weather-metno--data))))
+                  (calendar-longitude (string-to-number (nth 1 (caar weather-metno--data)))))
+              (weather-metno--insert 'weather-metno-entry
+                                     (format "\n%s: %s\n\n"
+                                             (format-time-string
+                                              weather-metno-format-date-string
+                                              (weather-metno--calendar-to-emacs-time current-day))
+                                             (solar-sunrise-sunset-string current-day t))))
+            (push weather-metno-forecast--table-view-field-descriptions day-data)
+            ;; Remove any empty strings that remain in data when icons are disabled
+            (when (or (not (stringp weather-metno-weathericons-directory))
+                      (not (display-images-p)))
+              (setq day-data (mapcar (lambda (sublist)
+                                       (cl-remove-if (lambda (s) (string= s "")) sublist))
+                                     day-data)))
+            (make-vtable
+             :objects (weather-metno--transpose-2d-list day-data)
+             :separator-width 8
+             :keymap (define-keymap
+                       "g" #'weather-metno-update
+                       "s" #'weather-metno-forecast-search-location
+                       "q" #'quit-window))
+            (goto-char (point-max))
+            )))
+      (goto-char (point-min))))
   (unless no-switch
     (weather-metno--switch-to-forecast-buffer)))
 
