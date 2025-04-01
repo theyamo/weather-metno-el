@@ -138,7 +138,6 @@ See `weather-metno-query' for more information."
         (remove-images (point-min) (point-max))
         
         (weather-metno-forecast-mode)
-        (display-line-numbers-mode 0)
         (erase-buffer)
         (goto-char (point-min))
         (weather-metno--insert 'weather-metno-header
