@@ -1,4 +1,4 @@
-;;; weather-metno-tabulated-view.el --- Weather in the mode line
+;;; weather-metno-tabular-view.el --- Weather as a tabular view
 
 
 ;;; Commentary:
@@ -50,7 +50,7 @@ See `weather-metno-query' for more information."
 (defconst weather-metno--condensed-forecast-format
   "{symbol|:symbol}={min-temperature} – {max-temperature} ℃={precipitation-min} – {precipitation-max} ㎜={wind-speed} ({wind-gust}) m/s={wind-direction-symbol}")
 
-(defun weather-metno-tabulated-view--f-symbol (code)
+(defun weather-metno-tabular-view--f-symbol (code)
   "Format symbol."
   (let* ((image (if (and (stringp weather-metno-weathericons-directory)
                          (display-images-p))
@@ -109,7 +109,7 @@ See `weather-metno-query' for more information."
                 (formatted (split-string (weather-metno-query-format weather-metno--condensed-forecast-format
                                                                      query-data
                                                                      nil
-                                                                     "weather-metno-tabulated-view--f-" "?")
+                                                                     "weather-metno-tabular-view--f-" "?")
                                          "=")))
             (push time-string formatted)
             (push formatted ret)))))
@@ -129,7 +129,7 @@ See `weather-metno-query' for more information."
                                                    eclipse))))))))
 
 ;;;###autoload
-(defun weather-metno-forecast-condensed-view (&optional no-switch)
+(defun weather-metno-forecast-tabular-view (&optional no-switch)
   "Display weather forecast, sunrise and sunset times, and lunar phases in tabular format.
 If NO-SWITCH is non-nil then do not switch to weather forecast buffer."  
   (interactive)
@@ -184,10 +184,10 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
          ))
       (goto-char (point-min))))
   (unless no-switch
-    (setq weather-metno-display-function #'weather-metno-forecast-condensed-view)
+    (setq weather-metno-display-function #'weather-metno-forecast-tabular-view)
     (weather-metno--switch-to-forecast-buffer)))
 
 
-(provide 'weather-metno-tabulated-view)
+(provide 'weather-metno-tabular-view)
 
-;;; weather-metno-mode-tabulated-view.el ends here
+;;; weather-metno-mode-tabular-view.el ends here

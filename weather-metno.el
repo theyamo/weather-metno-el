@@ -37,7 +37,7 @@
 (require 'calendar)
 (require 'cl-lib)
 
-(require 'weather-metno-tabulated-view)
+(require 'weather-metno-tabular-view)
 
 (defgroup weather-metno nil
   "Weather data from met.no in Emacs."
@@ -152,7 +152,7 @@ Setting it to `disabled' prevents from asking the directory and disables weather
           (function-item
            ,#'weather-metno-forecast-list-view)
           (function-item
-           ,#'weather-metno-forecast-condensed-view)))
+           ,#'weather-metno-forecast-tabular-view)))
 
 (defun weather-metno-clear-symbol-cache ()
   (interactive)
@@ -607,7 +607,7 @@ LAST-HEADLINE should point to the place where icons can be inserted."
 (defvar weather-metno-forecast-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "s" 'weather-metno-forecast-search-location)
-    (define-key map "t" 'weather-metno-forecast-condensed-view)
+    (define-key map "t" 'weather-metno-forecast-tabular-view)
     (define-key map "l" 'weather-metno-forecast-list-view)
     (define-key map "p" 'weather-metno-forecast-backward-time)
     (define-key map "n" 'weather-metno-forecast-forward-time)
@@ -631,7 +631,7 @@ LAST-HEADLINE should point to the place where icons can be inserted."
     ["Forward Date" weather-metno-forecast-forward-date
      :help "Go to next date"]
     "---"
-    ["Table View" weather-metno-forecast-condensed-view
+    ["Table View" weather-metno-forecast-tabular-view
      :help "View forecast as a table"]
     ["List View" weather-metno-forecast-list-view
      :help "View forecast as a list"]
