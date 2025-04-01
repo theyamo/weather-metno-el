@@ -685,7 +685,7 @@ LAST-HEADLINE should point to the place where icons can be inserted."
 
 ;;;###autoload
 (defun weather-metno-forecast-list-view (&optional no-switch)
-  "Display weather forecast.
+  "Display weather forecast in list format.
 If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
   (interactive)
   (unless weather-metno--data
@@ -859,7 +859,7 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
 
 ;;;###autoload
 (defun weather-metno-forecast (&optional arg no-switch)
-  "Display weather forecast.  If called with universal-argument, or no default location has been set, asks the user for location and queries its coordinates from NOMATIM service.
+  "Display weather forecast.  If called with universal-argument, or no default location has been set, asks for location and queries its coordinates from NOMATIM service.
 If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
   (interactive "P")
   (if (or (and (eq (weather-metno--get-default-location-latitude) 0)

@@ -130,6 +130,8 @@ See `weather-metno-query' for more information."
 
 ;;;###autoload
 (defun weather-metno-forecast-condensed-view (&optional no-switch)
+  "Display weather forecast, sunrise and sunset times, and lunar phases in tabular format.
+If NO-SWITCH is non-nil then do not switch to weather forecast buffer."  
   (interactive)
   (if (not weather-metno--data)
       (weather-metno-update)
