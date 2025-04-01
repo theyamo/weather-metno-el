@@ -172,7 +172,8 @@ See `weather-metno-query' for more information."
              :keymap (define-keymap
                        "g" #'weather-metno-update
                        "s" #'weather-metno-forecast-search-location
-                       "q" #'quit-window))
+                       "l" #'weather-metno-forecast-list-view
+                       "q" #'weather-metno-kill-forecast-buffer))
             (goto-char (point-max))
             ))
         (insert "\n")

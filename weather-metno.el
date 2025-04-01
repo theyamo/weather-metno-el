@@ -607,6 +607,8 @@ LAST-HEADLINE should point to the place where icons can be inserted."
 (defvar weather-metno-forecast-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "s" 'weather-metno-forecast-search-location)
+    (define-key map "t" 'weather-metno-forecast-condensed-view)
+    (define-key map "l" 'weather-metno-forecast-list-view)
     (define-key map "p" 'weather-metno-forecast-backward-time)
     (define-key map "n" 'weather-metno-forecast-forward-time)
     (define-key map "P" 'weather-metno-forecast-backward-date)
