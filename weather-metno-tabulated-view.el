@@ -182,6 +182,7 @@ See `weather-metno-query' for more information."
          ))
       (goto-char (point-min))))
   (unless no-switch
+    (setq weather-metno-display-function #'weather-metno-forecast-condensed-view)
     (weather-metno--switch-to-forecast-buffer)))
 
 

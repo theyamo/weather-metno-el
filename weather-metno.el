@@ -749,6 +749,7 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
          )))
     (goto-char (point-min)))
   (unless no-switch
+    (setq weather-metno-display-function #'weather-metno-forecast-list-view)
     (weather-metno--switch-to-forecast-buffer)))
 
 (defun weather-metno--order-locations-by-importance (locations)
