@@ -631,6 +631,11 @@ LAST-HEADLINE should point to the place where icons can be inserted."
     ["Forward Date" weather-metno-forecast-forward-date
      :help "Go to next date"]
     "---"
+    ["Table View" weather-metno-forecast-condensed-view
+     :help "View forecast as a table"]
+    ["List View" weather-metno-forecast-list-view
+     :help "View forecast as a list"]
+    "---"
     ["Update" weather-metno-update
      :help "Fetch new data from met.no"]
     ["Quit" weather-metno-kill-forecast-buffer
