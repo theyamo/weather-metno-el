@@ -131,14 +131,15 @@ See `weather-metno-query' for more information."
 ;;;###autoload
 (defun weather-metno-forecast-tabular-view (&optional no-switch)
   "Display weather forecast, sunrise and sunset times, and lunar phases in tabular format.
-If NO-SWITCH is non-nil then do not switch to weather forecast buffer."  
+If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
   (interactive)
+  (setq weather-metno-display-function #'weather-metno-forecast-tabular-view)
   (if (not weather-metno--data)
       (weather-metno-update)
-    (with-current-buffer (get-buffer-create weather-metno-buffer-name)
+    (with-current-buffer (get-buffer-create (weather-metno-buffer-name))
       (let ((inhibit-read-only t))
         (remove-images (point-min) (point-max))
-        
+
         (weather-metno-forecast-mode)
         (erase-buffer)
         (goto-char (point-min))
@@ -184,7 +185,6 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
          ))
       (goto-char (point-min))))
   (unless no-switch
-    (setq weather-metno-display-function #'weather-metno-forecast-tabular-view)
     (weather-metno--switch-to-forecast-buffer)))
 
 

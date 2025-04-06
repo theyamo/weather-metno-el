@@ -128,7 +128,7 @@ Setting it to `disabled' prevents from asking the directory and disables weather
   :type '(choice
           (const :tag "Ask" ask)
           (const :tag "Disabled" nil)
-          (string :tag "Directory")) 
+          (string :tag "Directory"))
   :group 'weather-metno)
 
 (defconst weather-metno-url "https://api.met.no/weatherapi/"
@@ -146,7 +146,7 @@ Setting it to `disabled' prevents from asking the directory and disables weather
 (defvar weather-metno-symbol--storage nil
   "Symbol cache.")
 
-(defcustom weather-metno-display-function #'weather-metno-forecast-list-view 
+(defcustom weather-metno-display-function #'weather-metno-forecast-list-view
   "Function to display the forecast."
   :type `(choice
           (function-item
@@ -409,8 +409,11 @@ documentation of the web API."
   (if (numberp n)
       (number-to-string n)))
 
-(defvar weather-metno-buffer-name "*Weather*"
-  "Name for the forecast buffer.")
+(defun weather-metno-buffer-name ()
+  "Returns the name for the forecast buffer."
+  (if (equal weather-metno-display-function 'weather-metno-forecast-tabular-view)
+      "*Weather (table)*"
+    "*Weather (list)*"))
 
 (defface weather-metno-header
   '((t :inherit header-line))
@@ -582,11 +585,16 @@ LAST-HEADLINE should point to the place where icons can be inserted."
 
 (defun weather-metno--switch-to-forecast-buffer ()
   (interactive)
-  (switch-to-buffer weather-metno-buffer-name))
+  (switch-to-buffer (weather-metno-buffer-name)))
 
 (defun weather-metno-kill-forecast-buffer ()
   (interactive)
-  (kill-buffer weather-metno-buffer-name))
+  (kill-buffer (weather-metno-buffer-name)))
+
+;; (when (get-buffer "*Weather (table)*")
+;;   (kill-buffer "*Weather (table)*"))
+;; (when (get-buffer "*Weather (list)*")
+;;   (kill-buffer "*Weather (list)*")))
 
 (defun weather-metno-forecast-backward-date ()
   (interactive)
@@ -662,7 +670,7 @@ LAST-HEADLINE should point to the place where icons can be inserted."
      (setq weather-metno--location (list lat lon msl))
      (setq weather-metno--data data)
      ;; If a forecast buffer exists then update it but do not switch.
-     (when (get-buffer weather-metno-buffer-name)
+     (when (get-buffer (weather-metno-buffer-name))
        (funcall weather-metno-display-function t)))
    (or lat weather-metno-location-latitude)
    (or lon weather-metno-location-longitude)
@@ -688,10 +696,10 @@ LAST-HEADLINE should point to the place where icons can be inserted."
   "Display weather forecast in list format.
 If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
   (interactive)
+  (setq weather-metno-display-function #'weather-metno-forecast-list-view)
   (unless weather-metno--data
     (weather-metno-update))
-
-  (with-current-buffer (get-buffer-create weather-metno-buffer-name)
+  (with-current-buffer (get-buffer-create (weather-metno-buffer-name))
     (save-excursion
       (let ((inhibit-read-only t))
         (remove-images (point-min) (point-max))
@@ -756,7 +764,6 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
          )))
     (goto-char (point-min)))
   (unless no-switch
-    (setq weather-metno-display-function #'weather-metno-forecast-list-view)
     (weather-metno--switch-to-forecast-buffer)))
 
 (defun weather-metno--order-locations-by-importance (locations)
@@ -827,7 +834,7 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
 ;;;###autoload
 (defun weather-metno-forecast-search-location (location)
   "Get weather forecast for location.
-If NO-SWITCH is non-nil then do not switch to weather forecast buffer."  
+If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
   (interactive
    (list
     (read-string "Location: "
