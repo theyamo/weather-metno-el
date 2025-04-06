@@ -84,7 +84,7 @@ See `weather-metno-query' for more information."
   (apply 'cl-mapcar 'list matrix))
 
 (defun weather-metno--calendar-to-emacs-time (date)
-  "Return the current time with seconds and minutes set to zero."
+  "Return the current time with hours, seconds and minutes set to zero."
   (encode-time 0 0 0 (nth 1 date) (nth 0 date) (nth 2 date)))
 
 (defun weather-metno--add-hours-to-time (date hours)

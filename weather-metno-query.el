@@ -212,6 +212,12 @@ Example:
           body2)
        ret)))
 
+(defun weather-metno--time-in-range-p (from to from2 to2)
+  (or (and (weather-metno-query--time-more-or-equal-p from from2)
+           (time-less-p from to2))
+      (and (weather-metno-query--time-more-or-equal-p to from2)
+           (time-less-p to to2))))
+
 (defmacro weather-metno-query-v2 (x &rest body)
   "Queries DATA for values at LOCATION for DATE.
 
@@ -248,15 +254,12 @@ Example:
                 (from-date (weather-metno--time-to-date from))
                 (to (cadr date-range))
                 (to-date (weather-metno--time-to-date to)))
-           ;;(debug (list ,date from))
-           ;; (message "%s %s "
-           ;;          (format-time-string "%A %Y-%m-%d %H:%M" from)
-           ;;          (format-time-string "%A %Y-%m-%d %H:%M" to))
+           (when (weather-metno--time-in-range-p from to ,date ,end-date)
+             ;; (debug (format-time-string "%y-%m-%d %H:%M" from)
+             ;;        (format-time-string "%y-%m-%d %H:%M" to)
+             ;;        (format-time-string "%y-%m-%d %H:%M" ,date)
+             ;;        (format-time-string "%y-%m-%d %H:%M" ,end-date))
 
-           (when (or (and (weather-metno-query--time-more-or-equal-p from ,date)
-                          (weather-metno-query--time-less-or-equal-p from ,end-date))
-                     (and (weather-metno-query--time-more-or-equal-p to ,date)
-                          (weather-metno-query--time-less-or-equal-p to ,end-date)))
              (dolist (entry (cdr forecast))
                (cl-case (car entry)
                  ,@(weather-metno-query--merge-cases
