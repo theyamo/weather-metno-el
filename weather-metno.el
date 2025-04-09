@@ -589,12 +589,7 @@ LAST-HEADLINE should point to the place where icons can be inserted."
 
 (defun weather-metno-kill-forecast-buffer ()
   (interactive)
-  (kill-buffer (weather-metno-buffer-name)))
-
-;; (when (get-buffer "*Weather (table)*")
-;;   (kill-buffer "*Weather (table)*"))
-;; (when (get-buffer "*Weather (list)*")
-;;   (kill-buffer "*Weather (list)*")))
+  (kill-buffer (current-buffer)))
 
 (defun weather-metno-forecast-backward-date ()
   (interactive)
