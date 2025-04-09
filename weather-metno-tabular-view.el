@@ -1,4 +1,6 @@
-;;; weather-metno-tabular-view.el --- Weather as a tabular view
+;;; weather-metno-tabular-view.el --- Weather as a tabular view  -*- lexical-binding: t -*-
+
+;; This file is NOT part of GNU Emacs.
 
 
 ;;; Commentary:
@@ -14,7 +16,7 @@
 
 (require 'weather-metno-query)
 
-(defcustom weather-metno--table-view-query
+(defconst weather-metno--table-view-query
   '(:get minTemperature :name min-temperature :select value :each string-to-number :min
          :get maxTemperature :name max-temperature :select value :each string-to-number :max
          :get precipitation :name precipitation-max :select value :each string-to-number :max
@@ -23,31 +25,18 @@
          :get windSpeed :name wind-speed :select mps :each string-to-number :max
          :get windGust :name wind-gust :select mps :each string-to-number :max
          :get windDirection :name wind-direction-symbol :select name :each weather-metno--wind-direction
-         :reduce weather-metno--most-frequent-element)
-  "The query used in condensed weather forecast.
-See `weather-metno-query' for more information."
-  :group 'weather-metno)
+         :reduce weather-metno--most-frequent-element))
 
 (defconst weather-metno-forecast--table-view-field-descriptions
+  "Headers for the weather table."
   '("Time" "" "Temperature" "Precipitation" "Wind speed/gusts" "Wind direction"))
 
-
-;; "C-x 8 RET 2b07"
-;; DOWNWARDS BLACK ARROW
-;; (insert-char #x2b06)⬆
-;; (insert-char #x2b07)⬇
-;; (insert-char #x2b08)⬈
-;; (insert-char #x2b09)⬉
-;; (insert-char #x2b0a)⬊
-;; (insert-char #x2b0b)⬋
-;; (insert-char #x2b05)⬅
-;; (insert-char #x2b95)⮕
-
 (defconst weather-metno--wind-direction-map
+  "Character symbols used to indicate wind direction."
   '((S . #x2b06) (N . #x2b07) (SW . #x2b08) (SE . #x2b09) (NW . #x2b0a) (NE . #x2b0b) (E . #x2b05) (W . #x2b95)))
 
-
 (defconst weather-metno--condensed-forecast-format
+  "String used to format each query result."
   "{symbol|:symbol}={min-temperature} – {max-temperature} ℃={precipitation-min} – {precipitation-max} ㎜={wind-speed} ({wind-gust}) m/s={wind-direction-symbol}")
 
 (defun weather-metno-tabular-view--f-symbol (code)
@@ -130,8 +119,9 @@ See `weather-metno-query' for more information."
 
 ;;;###autoload
 (defun weather-metno-forecast-tabular-view (&optional no-switch)
-  "Display weather forecast, sunrise and sunset times, and lunar phases in tabular format.
-If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
+  "Display weather forecast, sunrise and sunset times, and lunar phases in
+tabular format.  If NO-SWITCH is non-nil then do not switch to weather forecast
+buffer."
   (interactive)
   (setq weather-metno-display-function #'weather-metno-forecast-tabular-view)
   (if (not weather-metno--data)

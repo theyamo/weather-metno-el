@@ -2,12 +2,11 @@
 
 ;; Copyright (C) 2012-2014 Rüdiger Sonderfeld <ruediger@c-plusplus.de>
 
-;; Author: Rüdiger Sonderfeld <ruediger@c-plusplus.de>
-;; URL: https://github.com/ruediger/weather-metno-el
-;; Keywords: comm
-;; Package-Requires: ((emacs "29") (cl-lib "0.3"))
+;; Author:
 
 ;; This file is NOT part of GNU Emacs.
+
+;; SPDX-License-Identifier: GPL-3.0-or-later
 
 ;; weather-el is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -123,8 +122,10 @@ See `format-time-string' for a description of the format."
 
 (defcustom weather-metno-weathericons-directory
   'ask
-  "Weathericons directory.  When nil and using graphical display, user will be queried for directory to save weathericons, and the directory will be saved here.
-Setting it to `disabled' prevents from asking the directory and disables weathericons.."
+  "Weathericons directory.  When nil and using graphical display, user
+will be queried for directory to save weathericons, and the directory will be
+saved here.  Setting it to `disabled' prevents from asking the directory and
+disables weathericons."
   :type '(choice
           (const :tag "Ask" ask)
           (const :tag "Disabled" nil)
@@ -171,14 +172,14 @@ Setting it to `disabled' prevents from asking the directory and disables weather
   "Create URL to get ICON from the weathericon API."
   (format "file:%s/%s.png" weather-metno-weathericons-directory icon))
 
-(defcustom weather-metno-get-image-props '(:scale 0.25)
+(defcustom weather-metno-get-image-props nil
   "Image props for weather symbols.
 See `create-image' or \"(elisp) Images\" for an explanation.
 
 Example: (:width 16 :height 16 :ascent center) to force icons to be 16x16. This
 only works if ImageMagick is used.  See `weather-metno-use-imagemagick'."
   :group 'weather-metno
-  :type 'list)
+  :type 'sexp)
 
 (defcustom weather-metno-use-imagemagick (fboundp 'imagemagick-types)
   ;; TODO is there a better way to identify if emacs has imagemagick support?
@@ -384,9 +385,7 @@ documentation of the web API."
                         (url-store-in-cache (current-buffer))
 
                         (let ((xml (xml-parse-region (point) (point-max))))
-                          (setq my-xml xml)
                           (kill-buffer)
-
                           (funcall callback lat lon msl raw-xml
                                    (if raw-xml
                                        xml
@@ -789,7 +788,8 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
           (json-parse-string (buffer-substring (point) (point-max))))))))
 
 (defun weather-metno--check-weathericons ()
-  "Check if `weather-metno-weathericons-directory` is `ask', if so, ask to download and extract the icon package."
+  "Check if `weather-metno-weathericons-directory` is `ask', if so, ask to
+download and extract the icon package."
   (interactive)
   (when (and
          (eq 'ask weather-metno-weathericons-directory)
@@ -854,15 +854,12 @@ If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
       (weather-metno-update lat lon nil)
       (call-interactively weather-metno-display-function nil))))
 
-;; (unless (string= name weather-metno-location-name)
-;;   (setq weather-metno-location-name name)
-;;   (weather-metno-update lat lon nil)))))
-;; (funcall weather-metno--display-function nil)))))
-
 ;;;###autoload
 (defun weather-metno-forecast (&optional arg no-switch)
-  "Display weather forecast.  If called with universal-argument, or no default location has been set, asks for location and queries its coordinates from NOMATIM service.
-If NO-SWITCH is non-nil then do not switch to weather forecast buffer."
+  "Display weather forecast.  If called with universal-argument, or no
+default location has been set, asks for location and queries its coordinates
+from NOMATIM service.  If NO-SWITCH is non-nil then do not switch to weather
+forecast buffer."
   (interactive "P")
   (if (or (and (eq (weather-metno--get-default-location-latitude) 0)
                (eq (weather-metno--get-default-location-longitude) 0))
