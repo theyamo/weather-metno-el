@@ -408,11 +408,21 @@ documentation of the web API."
   (if (numberp n)
       (number-to-string n)))
 
+(defcustom weather-metno-table-buffer-name "*Weather (table)*"
+  "Name for the tabular view buffer."
+  :group 'weather-metno
+  :type 'string)
+
+(defcustom weather-metno-list-buffer-name "*Weather (list)*"
+  "Name for the list view buffer."
+  :group 'weather-metno
+  :type 'string)
+
 (defun weather-metno-buffer-name ()
   "Returns the name for the forecast buffer."
   (if (equal weather-metno-display-function 'weather-metno-forecast-tabular-view)
-      "*Weather (table)*"
-    "*Weather (list)*"))
+      weather-metno-table-buffer-name
+    weather-metno-list-buffer-name))
 
 (defface weather-metno-header
   '((t :inherit header-line))
@@ -654,21 +664,33 @@ LAST-HEADLINE should point to the place where icons can be inserted."
 (defvar weather-metno--location nil
   "Location for `weather-metno--data' cache.") ;; TODO this can be extracted from the data!
 
+;; TODO: if the buffer layouts get messed on weather-metno-update, just remove no-switch
+;; functionality altogether
+(defun weather-metno--refresh-buffer (buffer-to-refresh no-switch)
+  "Refresh buffer contents.  If current buffer is one of weather-metno buffers,
+refresh that, otherwise refresh the default buffer."
+  (cond
+   ((string= buffer-to-refresh weather-metno-table-buffer-name)
+    (weather-metno-forecast-tabular-view no-switch))
+   ((string= buffer-to-refresh weather-metno-list-buffer-name)
+    (weather-metno-forecast-list-view no-switch))
+   (t
+    (funcall weather-metno-display-function no-switch))))
+
 ;;;###autoload
 (defun weather-metno-update (&optional lat lon msl)
   "Update weather data."
   (interactive)
-  (weather-metno-forecast-receive
-   (lambda (lat lon msl raw-xml data)
-     (cl-assert (not raw-xml))
-     (setq weather-metno--location (list lat lon msl))
-     (setq weather-metno--data data)
-     ;; If a forecast buffer exists then update it but do not switch.
-     (when (get-buffer (weather-metno-buffer-name))
-       (funcall weather-metno-display-function t)))
-   (or lat weather-metno-location-latitude)
-   (or lon weather-metno-location-longitude)
-   (or msl weather-metno-location-msl)))
+  (let ((buffer-to-refresh (buffer-name)))
+    (weather-metno-forecast-receive
+     (lambda (lat lon msl raw-xml data)
+       (cl-assert (not raw-xml))
+       (setq weather-metno--location (list lat lon msl))
+       (setq weather-metno--data data)
+       (weather-metno--refresh-buffer buffer-to-refresh t))
+     (or lat weather-metno-location-latitude)
+     (or lon weather-metno-location-longitude)
+     (or msl weather-metno-location-msl))))
 
 (defun weather-metno--location-format (lat lon &optional msl)
   "Format LAT LON MSL into a string."
