@@ -140,6 +140,7 @@ buffer."
         (remove-images (point-min) (point-max))
 
         (weather-metno-forecast-mode)
+        (setq truncate-lines t)
         (erase-buffer)
         (goto-char (point-min))
         (weather-metno--insert 'weather-metno-header
