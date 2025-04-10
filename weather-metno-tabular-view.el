@@ -15,10 +15,13 @@
 (require 'lunar)
 
 (require 'weather-metno-query)
+(require 'org-weather-metno)
 
 (defconst weather-metno--table-view-query
   '(:get minTemperature :name min-temperature :select value :each string-to-number :min
          :get maxTemperature :name max-temperature :select value :each string-to-number :max
+         :get minTemperature :name min-temperature-avg :select value :each string-to-number :reduce weather-metno~q-avg
+         :get maxTemperature :name max-temperature-avg :select value :each string-to-number :reduce weather-metno~q-avg
          :get precipitation :name precipitation-max :select value :each string-to-number :max
          :get precipitation :name precipitation-min :select value :each string-to-number :min
          :get symbol :select code :name symbol :reduce weather-metno--most-frequent-element
@@ -27,17 +30,23 @@
          :get windDirection :name wind-direction-symbol :select name :each weather-metno--wind-direction
          :reduce weather-metno--most-frequent-element))
 
+(defun weather-metno~q-avg (x)
+  "Calculate average of X."
+  (/ (round (* 10 (org-weather-metno~q-avg x))) 10.0))
+
 (defconst weather-metno-forecast--table-view-field-descriptions  
-  '("Time" "" "Temperature" "Precipitation" "Wind speed/gusts" "Wind direction")
+  '("Time" "" "Temperature" "Avg" "Precipitation" "Wind speed/gusts" "Wind direction")
   "Headers for the weather table.")
 
 (defconst weather-metno--wind-direction-map  
   '((S . #x2b06) (N . #x2b07) (SW . #x2b08) (SE . #x2b09) (NW . #x2b0a) (NE . #x2b0b) (E . #x2b05) (W . #x2b95))
   "Character symbols used to indicate wind direction.")
 
-(defconst weather-metno--condensed-forecast-format  
-  "{symbol|:symbol}={min-temperature} – {max-temperature} ℃={precipitation-min} – {precipitation-max} ㎜={wind-speed} ({wind-gust}) m/s={wind-direction-symbol}"
+(defconst weather-metno--condensed-forecast-format
+  ;;  "{symbol|:symbol}={min-temperature} – {max-temperature} ℃={precipitation-min} – {precipitation-max} ㎜={wind-speed} ({wind-gust}) m/s={wind-direction-symbol}")
+  "{symbol|:symbol}={min-temperature} – {max-temperature} ℃={min-temperature-avg} – {max-temperature-avg} ℃={precipitation-min} – {precipitation-max} ㎜={wind-speed} ({wind-gust}) m/s={wind-direction-symbol}"
   "String used to format each query result.")
+
 
 (defun weather-metno-tabular-view--f-symbol (code)
   "Format symbol."
