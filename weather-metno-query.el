@@ -255,10 +255,6 @@ Example:
                 (to (cadr date-range))
                 (to-date (weather-metno--time-to-date to)))
            (when (weather-metno--time-in-range-p from to ,date ,end-date)
-             ;; (debug (format-time-string "%y-%m-%d %H:%M" from)
-             ;;        (format-time-string "%y-%m-%d %H:%M" to)
-             ;;        (format-time-string "%y-%m-%d %H:%M" ,date)
-             ;;        (format-time-string "%y-%m-%d %H:%M" ,end-date))
 
              (dolist (entry (cdr forecast))
                (cl-case (car entry)

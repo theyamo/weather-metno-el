@@ -90,7 +90,7 @@
              (end-time (weather-metno--add-hours-to-time start-time 6))
              (day-data weather-metno--data))
         (when-let* ((query-data (eval `(weather-metno-query-v2
-                                        (weather-metno--data nil start-time end-time)
+                                        (weather-metno--data nil ',start-time ',end-time)
                                         ,@weather-metno--table-view-query))))
           (let ((time-string (format "%s – %s"
                                      (format-time-string "%H:%M" start-time)
