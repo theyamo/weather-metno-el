@@ -15,7 +15,6 @@
 (require 'lunar)
 
 (require 'weather-metno-query)
-(require 'org-weather-metno)
 
 (defconst weather-metno--table-view-query
   '(:get minTemperature :name min-temperature :select value :each string-to-number :min
@@ -32,7 +31,8 @@
 
 (defun weather-metno~q-avg (x)
   "Calculate average of X."
-  (/ (round (* 10 (org-weather-metno~q-avg x))) 10.0))
+  (/ (round (* 10 (/ (apply #'+ x)
+                     (length x)))) 10.0))
 
 (defconst weather-metno-forecast--table-view-field-descriptions  
   '("Time" "" "Temperature" "Avg" "Precipitation" "Wind speed/gusts" "Wind direction")
