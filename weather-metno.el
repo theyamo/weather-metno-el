@@ -816,7 +816,7 @@ download and extract the icon package."
   (when (and
          (eq 'ask weather-metno-weathericons-directory)
          (display-images-p))
-    (let ((response (read-char-from-minibuffer "Weathericons directory is not set. Download and extract the package? (y)es/(n)o/(d)on't ask ")))
+    (let ((response (read-char-from-minibuffer "Weathericons directory is not set. Download and extract the package? (y, n or [d]on't ask.) ")))
       (cond
        ((eq response ?y)
         (let ((dir (read-directory-name "Select directory to clone weathericons into: "))
