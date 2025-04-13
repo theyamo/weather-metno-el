@@ -1,8 +1,29 @@
 # -*- mode:org; mode:auto-fill; fill-column:80; coding:utf-8; -*-
 #+TITLE: weather-metno-el revived: Weather data from met.no in Emacs
 
-NOTE: Since the [[https://github.com/ruediger/weather-metno-el][upstream]] has become unmaintained, I'll continue to make my own
+*NOTE* Since the [[https://github.com/ruediger/weather-metno-el][upstream]] has become unmaintained, I'll continue to make my own
 additions here.
+
+* What's new in the fork
+
+- If the custom variable =weather-metno-weathericons-directory=  (renamed
+  from =weather-metno-weathericon-directory=) is in its default value, user is
+  offered to have the met.no weather icons package downloaded and extracted to
+  location of their choosing. The custom variable will be automatically set to point to that
+  directory. If the variable is set to ~nil~, no icons will be used and the query
+  is disabled.
+
+- Support for location searches using the Nomatim service. Pressing "s" in the weather
+  buffer allows you to search for another location. You can also call =M-x weather-metno-forecast=
+  with the universal prefix argument (C-u) to search for a location before fetching the forecast.
+
+- New vtable based layout, available by calling =M-x weather-metno-forecast-tabular-view=, or by pressing "t" in the
+  forecast buffer. "l" shows the old list buffer, or creates one if it didn't exist.
+
+#+CAPTION: tabular layout
+[[./images/table.png]]
+
+* Old docs
 
 [[http://www.met.no/][Meteorologisk institutt]] (met.no) is the Norwegian national meterological
 institute.  It offers free weather data under the [[http://creativecommons.org/licenses/by/3.0][CC BY 3.0]] license.  The
@@ -14,7 +35,7 @@ The project is currently work in progress and likely to change dramatically.
 See =todo.org= for todos and longterm goals.
 
 Please submit bug reports and feature requests to the [[https://github.com/ruediger/weather-metno-el/issues][Github issue tracker]].
-
+  
 * Installation
 The easiest way to install weather-metno is by using [[https://github.com/dimitri/el-get#readme][el-get]] or
 [[http://marmalade-repo.org/packages/weather-metno/][marmalade-repo]] (package.el).
